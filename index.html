@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>イベント写真投稿</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  #map { height: 40vh; }
+  .box { padding: 10px; }
+  button { width: 100%; padding: 10px; font-size: 16px; }
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="box">
+  <select id="tag" style="width:100%; margin-bottom:8px" required>
+    <option value="">タグを選択</option>
+    <option value="会場">会場</option>
+    <option value="ステージ">ステージ</option>
+    <option value="展示">展示</option>
+    <option value="飲食">飲食</option>
+    <option value="物販">物販</option>
+    <option value="休憩">休憩</option>
+    <option value="その他">その他</option>
+  </select>
+
+  <input type="file" id="photo" accept="image/*"><br><br>
+
+  <textarea id="comment" placeholder="ひとこと（任意）"
+    style="width:100%; height:60px"></textarea><br><br>
+
+  <button onclick="send()">送信</button>
+</div>
+
+<script>
+const GAS_URL = "ここにGASのURL";
+
+let lat, lng;
+
+// 地図
+const map = L.map('map').setView([0, 0], 16);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// 現在地
+navigator.geolocation.getCurrentPosition(pos => {
+  lat = pos.coords.latitude;
+  lng = pos.coords.longitude;
+  map.setView([lat, lng], 17);
+  L.marker([lat, lng]).addTo(map).bindPopup("今いる場所").openPopup();
+});
+
+// 送信
+function send() {
+  const file = document.getElementById("photo").files[0];
+  const tag = document.getElementById("tag").value;
+
+  if (!file || !tag) {
+    alert("写真とタグを選択してください");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        lat: lat,
+        lng: lng,
+        tag: tag,
+        comment: document.getElementById("comment").value,
+        image: reader.result.split(",")[1]
+      })
+    }).then(() => {
+      alert("送信しました！");
+      location.reload();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
