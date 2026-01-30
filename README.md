@@ -29,6 +29,9 @@ Google スプレッドシートに一覧を記録するイベント用Webアプ�
 - GitHub Pages を有効化
 - HTTPS URL を QRコード化して配布
 
+## 詳細手順
+- [実装手順（完全版）](SETUP_GUIDE.md)
+
 ## 注意
 - 位置情報は HTTPS 必須
 - iPhone は Safari 推奨
