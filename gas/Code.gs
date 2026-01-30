@@ -54,10 +54,12 @@ function doPost(e) {
 
 function doGet(e) {
   const mode = e && e.parameter ? e.parameter.mode : null;
+  const callback = e && e.parameter ? e.parameter.callback : null;
   if (mode && mode !== "list") {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "error", message: "invalid mode" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonpResponse(
+      { status: "error", message: "invalid mode" },
+      callback
+    );
   }
 
   const sheet = SpreadsheetApp
@@ -75,7 +77,18 @@ function doGet(e) {
     fileId: row[6] || ""
   })).filter(photo => !Number.isNaN(photo.lat) && !Number.isNaN(photo.lng));
 
+  return createJsonpResponse({ status: "ok", photos }, callback);
+}
+
+function createJsonpResponse(payload, callback) {
+  const json = JSON.stringify(payload);
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${json});`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
   return ContentService
-    .createTextOutput(JSON.stringify({ status: "ok", photos }))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }

@@ -31,6 +31,7 @@
     justify-content: center;
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
     font-size: 28px;
+    z-index: 1000;
   }
   .photo-popup {
     width: 220px;
@@ -160,38 +161,47 @@ const getDriveImageUrl = (photo) => {
   return photo.imageUrl;
 };
 
-const loadExistingPhotos = async () => {
-  try {
-    const response = await fetch(`${GAS_URL}?mode=list`);
-    if (!response.ok) {
-      return;
-    }
-    const data = await response.json();
-    if (!data || !Array.isArray(data.photos)) {
-      return;
-    }
-
-    data.photos.forEach(photo => {
-      if (typeof photo.lat !== "number" || typeof photo.lng !== "number") {
-        return;
-      }
-
-      const imageUrl = getDriveImageUrl(photo);
-      const popupHtml = `
-        <div class="photo-popup">
-          ${imageUrl ? `<img src="${imageUrl}" alt="${photo.tag || "投稿写真"}">` : ""}
-          ${photo.tag ? `<span class="tag is-info is-light">${photo.tag}</span>` : ""}
-          ${photo.comment ? `<p class="is-size-7">${photo.comment}</p>` : ""}
-        </div>
-      `;
-
-      L.marker([photo.lat, photo.lng])
-        .addTo(map)
-        .bindPopup(popupHtml);
-    });
-  } catch (error) {
-    console.warn("登録済み写真の取得に失敗しました", error);
+const renderExistingPhotos = (photos) => {
+  if (!Array.isArray(photos)) {
+    return;
   }
+
+  photos.forEach(photo => {
+    if (typeof photo.lat !== "number" || typeof photo.lng !== "number") {
+      return;
+    }
+
+    const imageUrl = getDriveImageUrl(photo);
+    const popupHtml = `
+      <div class="photo-popup">
+        ${imageUrl ? `<img src="${imageUrl}" alt="${photo.tag || "投稿写真"}">` : ""}
+        ${photo.tag ? `<span class="tag is-info is-light">${photo.tag}</span>` : ""}
+        ${photo.comment ? `<p class="is-size-7">${photo.comment}</p>` : ""}
+      </div>
+    `;
+
+    L.marker([photo.lat, photo.lng])
+      .addTo(map)
+      .bindPopup(popupHtml);
+  });
+};
+
+const loadExistingPhotos = () => {
+  const callbackName = `photoMapCallback_${Date.now()}`;
+  window[callbackName] = (data) => {
+    renderExistingPhotos(data ? data.photos : []);
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${GAS_URL}?mode=list&callback=${callbackName}`;
+  script.onerror = () => {
+    console.warn("登録済み写真の取得に失敗しました");
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
 };
 
 loadExistingPhotos();
