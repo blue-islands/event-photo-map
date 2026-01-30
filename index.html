@@ -145,20 +145,40 @@ navigator.geolocation.getCurrentPosition(pos => {
   L.marker([lat, lng]).addTo(map).bindPopup("今いる場所").openPopup();
 });
 
-const getDriveImageUrl = (photo) => {
-  if (photo.fileId) {
-    return `https://drive.google.com/uc?export=view&id=${photo.fileId}`;
-  }
+const buildDriveImageUrl = (fileId) => (
+  fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : ""
+);
 
-  if (!photo.imageUrl) {
+const extractDriveFileId = (url) => {
+  if (!url) {
     return "";
   }
 
-  const match = photo.imageUrl.match(/[-\w]{25,}/);
+  const match = url.match(/\/d\/([-\w]{25,})/);
   if (match) {
-    return `https://drive.google.com/uc?export=view&id=${match[0]}`;
+    return match[1];
   }
-  return photo.imageUrl;
+
+  const queryMatch = url.match(/[?&]id=([-\w]{25,})/);
+  if (queryMatch) {
+    return queryMatch[1];
+  }
+
+  return "";
+};
+
+const getDriveImageUrl = (photo) => {
+  const explicitId = photo.fileId || "";
+  if (explicitId) {
+    return buildDriveImageUrl(explicitId);
+  }
+
+  const extractedId = extractDriveFileId(photo.imageUrl);
+  if (extractedId) {
+    return buildDriveImageUrl(extractedId);
+  }
+
+  return photo.imageUrl || "";
 };
 
 const renderExistingPhotos = (photos) => {
