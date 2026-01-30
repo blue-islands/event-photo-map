@@ -43,10 +43,39 @@ function doPost(e) {
     data.lng,
     data.tag,
     file.getUrl(),
-    data.comment || ""
+    data.comment || "",
+    file.getId()
   ]);
 
   return ContentService
     .createTextOutput(JSON.stringify({ status: "ok" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  const mode = e && e.parameter ? e.parameter.mode : null;
+  if (mode && mode !== "list") {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "error", message: "invalid mode" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const sheet = SpreadsheetApp
+    .openById("スプレッドシートID")
+    .getSheetByName("data");
+
+  const values = sheet.getDataRange().getValues();
+  const rows = values.length > 1 ? values.slice(1) : [];
+  const photos = rows.map(row => ({
+    lat: Number(row[1]),
+    lng: Number(row[2]),
+    tag: row[3],
+    imageUrl: row[4],
+    comment: row[5],
+    fileId: row[6] || ""
+  })).filter(photo => !Number.isNaN(photo.lat) && !Number.isNaN(photo.lng));
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "ok", photos }))
     .setMimeType(ContentService.MimeType.JSON);
 }
