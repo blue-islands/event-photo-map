@@ -1,3 +1,6 @@
+const SPREADSHEET_ID = "スプレッドシートID";
+const FOLDER_ID = "フォルダID";
+
 function doPost(e) {
   let data = {};
   if (e.postData && e.postData.contents) {
@@ -19,10 +22,10 @@ function doPost(e) {
   }
 
   const sheet = SpreadsheetApp
-    .openById("スプレッドシートID")
+    .openById(SPREADSHEET_ID)
     .getSheetByName("data");
 
-  const folder = DriveApp.getFolderById("フォルダID");
+  const folder = DriveApp.getFolderById(FOLDER_ID);
 
   const bytes = Utilities.base64Decode(data.image);
   const blob = Utilities.newBlob(
@@ -43,10 +46,52 @@ function doPost(e) {
     data.lng,
     data.tag,
     file.getUrl(),
-    data.comment || ""
+    data.comment || "",
+    file.getId()
   ]);
 
   return ContentService
     .createTextOutput(JSON.stringify({ status: "ok" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  const mode = e && e.parameter ? e.parameter.mode : null;
+  const callback = e && e.parameter ? e.parameter.callback : null;
+  if (mode && mode !== "list") {
+    return createJsonpResponse(
+      { status: "error", message: "invalid mode" },
+      callback
+    );
+  }
+
+  const sheet = SpreadsheetApp
+    .openById(SPREADSHEET_ID)
+    .getSheetByName("data");
+
+  const values = sheet.getDataRange().getValues();
+  const rows = values.length > 1 ? values.slice(1) : [];
+  const photos = rows.map(row => ({
+    lat: Number(row[1]),
+    lng: Number(row[2]),
+    tag: row[3],
+    imageUrl: row[4],
+    comment: row[5],
+    fileId: row[6] || ""
+  })).filter(photo => !Number.isNaN(photo.lat) && !Number.isNaN(photo.lng));
+
+  return createJsonpResponse({ status: "ok", photos }, callback);
+}
+
+function createJsonpResponse(payload, callback) {
+  const json = JSON.stringify(payload);
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${json});`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return ContentService
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }

@@ -7,15 +7,49 @@
 
 <link
   rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+/>
+<link
+  rel="stylesheet"
   href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-  body { margin: 0; font-family: sans-serif; }
-  #map { height: 40vh; }
-  .box { padding: 10px; }
-  button { width: 100%; padding: 10px; font-size: 16px; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: "Inter", "Hiragino Kaku Gothic ProN", sans-serif; }
+  #map { height: 100vh; width: 100vw; }
+  .fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    border-radius: 999px;
+    width: 64px;
+    height: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+    font-size: 28px;
+    z-index: 1000;
+  }
+  .photo-popup {
+    width: 220px;
+  }
+  .photo-popup img {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .photo-popup .tag {
+    margin-bottom: 6px;
+  }
+  .modal-card {
+    width: min(92vw, 480px);
+  }
+  .modal-card-body {
+    background: #f8fafc;
+  }
 </style>
 </head>
 
@@ -23,24 +57,54 @@
 
 <div id="map"></div>
 
-<div class="box">
-  <select id="tag" style="width:100%; margin-bottom:8px" required>
-    <option value="">タグを選択</option>
-    <option value="会場">会場</option>
-    <option value="ステージ">ステージ</option>
-    <option value="展示">展示</option>
-    <option value="飲食">飲食</option>
-    <option value="物販">物販</option>
-    <option value="休憩">休憩</option>
-    <option value="その他">その他</option>
-  </select>
+<button id="openModal" class="button is-primary fab" aria-label="登録">
+  ＋
+</button>
 
-  <input type="file" id="photo" accept="image/*"><br><br>
+<div id="registerModal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">写真を登録</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body">
+      <div class="field">
+        <label class="label">タグ</label>
+        <div class="control">
+          <div class="select is-fullwidth">
+            <select id="tag" required>
+              <option value="">タグを選択</option>
+              <option value="会場">会場</option>
+              <option value="ステージ">ステージ</option>
+              <option value="展示">展示</option>
+              <option value="飲食">飲食</option>
+              <option value="物販">物販</option>
+              <option value="休憩">休憩</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-  <textarea id="comment" placeholder="ひとこと（任意）"
-    style="width:100%; height:60px"></textarea><br><br>
+      <div class="field">
+        <label class="label">写真</label>
+        <div class="control">
+          <input class="input" type="file" id="photo" accept="image/*">
+        </div>
+      </div>
 
-  <button onclick="send()">送信</button>
+      <div class="field">
+        <label class="label">ひとこと（任意）</label>
+        <div class="control">
+          <textarea class="textarea" id="comment" placeholder="撮影した様子をメモしましょう"></textarea>
+        </div>
+      </div>
+    </section>
+    <footer class="modal-card-foot">
+      <button id="submitPhoto" class="button is-primary is-fullwidth">登録する</button>
+    </footer>
+  </div>
 </div>
 
 <script>
@@ -48,6 +112,24 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbzfEU5jaZYQw_Apnknegqjs
 
 let lat, lng;
 let isSubmitting = false;
+
+const modal = document.getElementById("registerModal");
+const openModalButton = document.getElementById("openModal");
+const closeModalButton = modal.querySelector(".delete");
+const modalBackground = modal.querySelector(".modal-background");
+const submitButton = document.getElementById("submitPhoto");
+
+const openModal = () => {
+  modal.classList.add("is-active");
+};
+
+const closeModal = () => {
+  modal.classList.remove("is-active");
+};
+
+openModalButton.addEventListener("click", openModal);
+closeModalButton.addEventListener("click", closeModal);
+modalBackground.addEventListener("click", closeModal);
 
 // 地図
 const map = L.map('map').setView([0, 0], 16);
@@ -62,6 +144,87 @@ navigator.geolocation.getCurrentPosition(pos => {
   map.setView([lat, lng], 17);
   L.marker([lat, lng]).addTo(map).bindPopup("今いる場所").openPopup();
 });
+
+const buildDriveImageUrl = (fileId) => (
+  fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : ""
+);
+
+const extractDriveFileId = (url) => {
+  if (!url) {
+    return "";
+  }
+
+  const match = url.match(/\/d\/([-\w]{25,})/);
+  if (match) {
+    return match[1];
+  }
+
+  const queryMatch = url.match(/[?&]id=([-\w]{25,})/);
+  if (queryMatch) {
+    return queryMatch[1];
+  }
+
+  return "";
+};
+
+const getDriveImageUrl = (photo) => {
+  const explicitId = photo.fileId || "";
+  if (explicitId) {
+    return buildDriveImageUrl(explicitId);
+  }
+
+  const extractedId = extractDriveFileId(photo.imageUrl);
+  if (extractedId) {
+    return buildDriveImageUrl(extractedId);
+  }
+
+  return photo.imageUrl || "";
+};
+
+const renderExistingPhotos = (photos) => {
+  if (!Array.isArray(photos)) {
+    return;
+  }
+
+  photos.forEach(photo => {
+    if (typeof photo.lat !== "number" || typeof photo.lng !== "number") {
+      return;
+    }
+
+    const imageUrl = getDriveImageUrl(photo);
+    const popupHtml = `
+      <div class="photo-popup">
+        ${imageUrl ? `<img src="${imageUrl}" alt="${photo.tag || "投稿写真"}">` : ""}
+        ${photo.tag ? `<span class="tag is-info is-light">${photo.tag}</span>` : ""}
+        ${photo.comment ? `<p class="is-size-7">${photo.comment}</p>` : ""}
+      </div>
+    `;
+
+    L.marker([photo.lat, photo.lng])
+      .addTo(map)
+      .bindPopup(popupHtml);
+  });
+};
+
+const loadExistingPhotos = () => {
+  const callbackName = `photoMapCallback_${Date.now()}`;
+  window[callbackName] = (data) => {
+    renderExistingPhotos(data ? data.photos : []);
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${GAS_URL}?mode=list&callback=${callbackName}`;
+  script.onerror = () => {
+    console.warn("登録済み写真の取得に失敗しました");
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
+};
+
+loadExistingPhotos();
 
 // 送信
 function send() {
@@ -112,6 +275,8 @@ function send() {
   };
   reader.readAsDataURL(file);
 }
+
+submitButton.addEventListener("click", send);
 </script>
 
 </body>
