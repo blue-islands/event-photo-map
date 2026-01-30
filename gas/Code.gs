@@ -1,3 +1,6 @@
+const SPREADSHEET_ID = "スプレッドシートID";
+const FOLDER_ID = "フォルダID";
+
 function doPost(e) {
   let data = {};
   if (e.postData && e.postData.contents) {
@@ -19,10 +22,10 @@ function doPost(e) {
   }
 
   const sheet = SpreadsheetApp
-    .openById("スプレッドシートID")
+    .openById(SPREADSHEET_ID)
     .getSheetByName("data");
 
-  const folder = DriveApp.getFolderById("フォルダID");
+  const folder = DriveApp.getFolderById(FOLDER_ID);
 
   const bytes = Utilities.base64Decode(data.image);
   const blob = Utilities.newBlob(
@@ -63,7 +66,7 @@ function doGet(e) {
   }
 
   const sheet = SpreadsheetApp
-    .openById("スプレッドシートID")
+    .openById(SPREADSHEET_ID)
     .getSheetByName("data");
 
   const values = sheet.getDataRange().getValues();
