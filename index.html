@@ -43,10 +43,21 @@
   <button onclick="send()">送信</button>
 </div>
 
+<form id="uploadForm" method="POST" target="uploadFrame" style="display:none;">
+  <input type="hidden" name="lat" id="formLat">
+  <input type="hidden" name="lng" id="formLng">
+  <input type="hidden" name="tag" id="formTag">
+  <input type="hidden" name="comment" id="formComment">
+  <input type="hidden" name="image" id="formImage">
+</form>
+
+<iframe id="uploadFrame" name="uploadFrame" style="display:none;"></iframe>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbweIcgU4ySg3OqTUuDhLNwcLX1mCuBkM0Oh0OhDpqRCOyobHS6EQejz3rydwSwuV8r9/exec";
 
 let lat, lng;
+let isSubmitting = false;
 
 // 地図
 const map = L.map('map').setView([0, 0], 16);
@@ -74,30 +85,37 @@ function send() {
 
   const reader = new FileReader();
   reader.onload = () => {
-    fetch(GAS_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        lat: lat,
-        lng: lng,
-        tag: tag,
-        comment: document.getElementById("comment").value,
-        image: reader.result.split(",")[1]
-      })
-    })
-      .then(() => {
-        alert("送信しました！");
-        location.reload();
-      })
-      .catch(() => {
+    const uploadForm = document.getElementById("uploadForm");
+    uploadForm.action = GAS_URL;
+    document.getElementById("formLat").value = lat;
+    document.getElementById("formLng").value = lng;
+    document.getElementById("formTag").value = tag;
+    document.getElementById("formComment").value =
+      document.getElementById("comment").value;
+    document.getElementById("formImage").value =
+      reader.result.split(",")[1];
+
+    isSubmitting = true;
+    uploadForm.submit();
+
+    setTimeout(() => {
+      if (isSubmitting) {
+        isSubmitting = false;
         alert("送信に失敗しました。通信状態を確認してください。");
-      });
+      }
+    }, 15000);
   };
   reader.readAsDataURL(file);
 }
+
+document.getElementById("uploadFrame").addEventListener("load", () => {
+  if (!isSubmitting) {
+    return;
+  }
+  isSubmitting = false;
+  alert("送信しました！");
+  location.reload();
+});
 </script>
 
 </body>

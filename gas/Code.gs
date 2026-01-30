@@ -1,5 +1,22 @@
 function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
+  let data = {};
+  if (e.postData && e.postData.contents) {
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (error) {
+      data = {};
+    }
+  }
+
+  if (!data || Object.keys(data).length === 0) {
+    data = {
+      lat: e.parameter.lat,
+      lng: e.parameter.lng,
+      tag: e.parameter.tag,
+      comment: e.parameter.comment,
+      image: e.parameter.image
+    };
+  }
 
   const sheet = SpreadsheetApp
     .openById("スプレッドシートID")
