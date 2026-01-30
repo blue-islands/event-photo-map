@@ -75,13 +75,13 @@ function send() {
 
   const reader = new FileReader();
   reader.onload = async () => {
-    const payload = {
+    const payload = new URLSearchParams({
       lat,
       lng,
       tag,
       comment: document.getElementById("comment").value,
       image: reader.result.split(",")[1]
-    };
+    });
 
     isSubmitting = true;
 
@@ -93,21 +93,14 @@ function send() {
     }, 15000);
 
     try {
-      const response = await fetch(GAS_URL, {
+      await fetch(GAS_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        mode: "no-cors",
+        body: payload
       });
 
       clearTimeout(timeoutId);
       isSubmitting = false;
-
-      if (!response.ok) {
-        alert("送信に失敗しました。時間をおいて再度お試しください。");
-        return;
-      }
 
       alert("送信しました！");
       location.reload();
