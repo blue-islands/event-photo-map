@@ -151,13 +151,16 @@
 
       <div class="field">
         <label class="label">写真</label>
-        <div class="file is-boxed is-fullwidth">
+        <div class="file has-name is-fullwidth">
           <label class="file-label">
             <input class="file-input" type="file" id="photo" accept="image/*">
             <span class="file-cta">
-              <span class="file-icon">📸</span>
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
               <span class="file-label">写真を選ぶ</span>
             </span>
+            <span class="file-name" id="photoName">未選択</span>
           </label>
         </div>
 
@@ -228,6 +231,7 @@ const submitStatus = document.getElementById("submitStatus");
 const tagInput = document.getElementById("tag");
 const tagOptions = document.getElementById("tagOptions");
 const photoInput = document.getElementById("photo");
+const photoName = document.getElementById("photoName");
 const commentInput = document.getElementById("comment");
 const recenterButton = document.getElementById("recenterButton");
 const manualButton = document.getElementById("manualButton");
@@ -267,6 +271,11 @@ closeModalButton.addEventListener("click", closeModal);
 modalBackground.addEventListener("click", closeModal);
 manualButton.addEventListener("click", openManualModal);
 galleryButton.addEventListener("click", openGalleryModal);
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files && photoInput.files[0];
+  photoName.textContent = file ? file.name : "未選択";
+});
 
 manualModal.querySelector(".delete").addEventListener("click", closeManualModal);
 manualModal.querySelector(".modal-background").addEventListener("click", closeManualModal);
