@@ -5,6 +5,9 @@
 <title>イベント写真投稿</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+  integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link
   rel="stylesheet"
   href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
@@ -111,16 +114,16 @@
 <div class="map-center-indicator" aria-hidden="true"></div>
 
 <button id="manualButton" class="button is-warning is-rounded corner-button corner-button--top-right" aria-label="マニュアル">
-  ❔
+  <i class="fa-solid fa-question"></i>
 </button>
 <button id="galleryButton" class="button is-info is-rounded corner-button corner-button--bottom-right" aria-label="写真一覧">
-  🖼️
+  <i class="fa-solid fa-image"></i>
 </button>
 <button id="openModal" class="button is-primary is-rounded corner-button corner-button--bottom-left" aria-label="登録">
-  ＋
+  <i class="fa-solid fa-camera"></i>
 </button>
 <button id="recenterButton" class="button is-link is-rounded corner-button corner-button--top-left" aria-label="現在地へ戻る">
-  📍
+  <i class="fa-solid fa-arrows-to-dot"></i>
 </button>
 
 <div id="registerModal" class="modal">
