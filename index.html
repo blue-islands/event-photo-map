@@ -75,18 +75,14 @@
       <div class="field">
         <label class="label">タグ</label>
         <div class="control">
-          <div class="select is-fullwidth">
-            <select id="tag" required>
-              <option value="">タグを選択</option>
-              <option value="会場">会場</option>
-              <option value="ステージ">ステージ</option>
-              <option value="展示">展示</option>
-              <option value="飲食">飲食</option>
-              <option value="物販">物販</option>
-              <option value="休憩">休憩</option>
-              <option value="その他">その他</option>
-            </select>
-          </div>
+          <input
+            class="input"
+            id="tag"
+            list="tagOptions"
+            placeholder="タグを選択または入力"
+            required
+          >
+          <datalist id="tagOptions"></datalist>
         </div>
       </div>
 
@@ -106,6 +102,7 @@
     </section>
     <footer class="modal-card-foot">
       <button id="submitPhoto" class="button is-primary is-fullwidth">登録する</button>
+      <p id="submitStatus" class="help is-info is-hidden">登録中...</p>
     </footer>
   </div>
 </div>
@@ -121,6 +118,11 @@ const openModalButton = document.getElementById("openModal");
 const closeModalButton = modal.querySelector(".delete");
 const modalBackground = modal.querySelector(".modal-background");
 const submitButton = document.getElementById("submitPhoto");
+const submitStatus = document.getElementById("submitStatus");
+const tagInput = document.getElementById("tag");
+const tagOptions = document.getElementById("tagOptions");
+const photoInput = document.getElementById("photo");
+const commentInput = document.getElementById("comment");
 
 const openModal = () => {
   modal.classList.add("is-active");
@@ -229,8 +231,57 @@ const loadExistingPhotos = () => {
 
 loadExistingPhotos();
 
+const renderTagOptions = (tags) => {
+  tagOptions.innerHTML = "";
+  if (!Array.isArray(tags)) {
+    return;
+  }
+
+  tags.forEach(tag => {
+    const option = document.createElement("option");
+    option.value = tag;
+    tagOptions.appendChild(option);
+  });
+};
+
+const loadTagOptions = () => {
+  const callbackName = `tagOptionsCallback_${Date.now()}`;
+  window[callbackName] = (data) => {
+    renderTagOptions(data ? data.tags : []);
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${GAS_URL}?mode=tags&callback=${callbackName}`;
+  script.onerror = () => {
+    console.warn("タグ一覧の取得に失敗しました");
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
+};
+
+loadTagOptions();
+
+const setSubmittingState = (submitting) => {
+  isSubmitting = submitting;
+  submitButton.disabled = submitting;
+  submitButton.classList.toggle("is-loading", submitting);
+  submitStatus.classList.toggle("is-hidden", !submitting);
+  tagInput.disabled = submitting;
+  photoInput.disabled = submitting;
+  commentInput.disabled = submitting;
+  openModalButton.disabled = submitting;
+  closeModalButton.disabled = submitting;
+};
+
 // 送信
 function send() {
+  if (isSubmitting) {
+    return;
+  }
+
   const file = document.getElementById("photo").files[0];
   const tag = document.getElementById("tag").value;
 
@@ -249,11 +300,11 @@ function send() {
       image: reader.result.split(",")[1]
     });
 
-    isSubmitting = true;
+    setSubmittingState(true);
 
     const timeoutId = setTimeout(() => {
       if (isSubmitting) {
-        isSubmitting = false;
+        setSubmittingState(false);
         alert("送信に失敗しました。通信状態を確認してください。");
       }
     }, 15000);
@@ -266,13 +317,13 @@ function send() {
       });
 
       clearTimeout(timeoutId);
-      isSubmitting = false;
+      setSubmittingState(false);
 
       alert("送信しました！");
       location.reload();
     } catch (error) {
       clearTimeout(timeoutId);
-      isSubmitting = false;
+      setSubmittingState(false);
       alert("送信に失敗しました。通信状態を確認してください。");
     }
   };
