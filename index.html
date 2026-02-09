@@ -19,19 +19,125 @@
   html, body { height: 100%; }
   body { margin: 0; font-family: "Inter", "Hiragino Kaku Gothic ProN", sans-serif; }
   #map { height: 100vh; width: 100vw; }
-  .fab {
+  .map-center-indicator {
     position: fixed;
-    right: 24px;
-    bottom: 24px;
-    border-radius: 999px;
+    top: 50%;
+    left: 50%;
+    width: 26px;
+    height: 26px;
+    margin-left: -13px;
+    margin-top: -13px;
+    border-radius: 50%;
+    border: 3px solid #ff3860;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 56, 96, 0.2);
+    z-index: 900;
+    pointer-events: none;
+  }
+  .map-center-indicator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: #ff3860;
+  }
+  .action-button {
+    position: fixed;
     width: 64px;
     height: 64px;
+    border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
-    font-size: 28px;
-    z-index: 1000;
+    font-size: 26px;
+    border: none;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.25);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1100;
+    transform: var(--base-transform, none);
+  }
+  .action-button:hover {
+    transform: var(--base-transform, none) translateY(-2px) scale(1.02);
+    box-shadow: 0 24px 46px rgba(15, 23, 42, 0.3);
+  }
+  .action-button--top {
+    top: 24px;
+    left: 50%;
+    --base-transform: translateX(-50%);
+  }
+  .action-button--right {
+    right: 24px;
+    top: 50%;
+    --base-transform: translateY(-50%);
+  }
+  .action-button--bottom {
+    bottom: 24px;
+    left: 50%;
+    --base-transform: translateX(-50%);
+  }
+  .action-button--left {
+    left: 24px;
+    top: 50%;
+    --base-transform: translateY(-50%);
+  }
+  .action-button[data-label]::after {
+    content: attr(data-label);
+    position: absolute;
+    background: rgba(15, 23, 42, 0.85);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .action-button--top::after {
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .action-button--bottom::after {
+    bottom: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .action-button--left::after {
+    left: 72px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .action-button--right::after {
+    right: 72px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .action-button:hover::after {
+    opacity: 1;
+  }
+  .action-button.is-primary {
+    background: linear-gradient(135deg, #5b7cff, #7f5bff);
+    color: #fff;
+  }
+  .action-button.is-info {
+    background: linear-gradient(135deg, #2dd4bf, #38bdf8);
+    color: #fff;
+  }
+  .action-button.is-warning {
+    background: linear-gradient(135deg, #fbbf24, #fb7185);
+    color: #fff;
+  }
+  .action-button.is-link {
+    background: linear-gradient(135deg, #22d3ee, #6366f1);
+    color: #fff;
   }
   .photo-popup {
     width: 220px;
@@ -45,13 +151,64 @@
     margin-bottom: 6px;
   }
   .modal-card {
-    width: min(92vw, 480px);
+    width: min(92vw, 560px);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+  }
+  .modal-card-head {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.85));
+    border-bottom: none;
   }
   .modal-card-body {
-    background: #f8fafc;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.95));
   }
   .modal {
     z-index: 2000;
+  }
+  .form-grid {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 640px) {
+    .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .form-grid .field.is-full {
+      grid-column: 1 / -1;
+    }
+  }
+  .input, .textarea {
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .textarea {
+    min-height: 120px;
+  }
+  .modal-card-foot {
+    background: transparent;
+    border-top: none;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .gallery-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  }
+  .gallery-item img {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+  }
+  .gallery-item .tag {
+    margin-top: 6px;
   }
 </style>
 </head>
@@ -59,9 +216,19 @@
 <body>
 
 <div id="map"></div>
+<div class="map-center-indicator" aria-hidden="true"></div>
 
-<button id="openModal" class="button is-primary fab" aria-label="登録">
+<button id="manualButton" class="action-button action-button--top is-warning" aria-label="マニュアル" data-label="マニュアル">
+  ❔
+</button>
+<button id="galleryButton" class="action-button action-button--right is-info" aria-label="写真一覧" data-label="写真一覧">
+  🖼️
+</button>
+<button id="openModal" class="action-button action-button--bottom is-primary" aria-label="登録" data-label="写真を登録">
   ＋
+</button>
+<button id="recenterButton" class="action-button action-button--left is-link" aria-label="現在地へ戻る" data-label="現在地へ戻る">
+  📍
 </button>
 
 <div id="registerModal" class="modal">
@@ -72,33 +239,36 @@
       <button class="delete" aria-label="close"></button>
     </header>
     <section class="modal-card-body">
-      <div class="field">
-        <label class="label">タグ</label>
-        <div class="control">
-          <input
-            class="input"
-            id="tag"
-            list="tagOptions"
-            placeholder="タグを選択または入力"
-            required
-          >
-          <datalist id="tagOptions"></datalist>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">タグ</label>
+          <div class="control">
+            <input
+              class="input"
+              id="tag"
+              list="tagOptions"
+              placeholder="タグを選択または入力"
+              required
+            >
+            <datalist id="tagOptions"></datalist>
+          </div>
         </div>
-      </div>
 
-      <div class="field">
-        <label class="label">写真</label>
-        <div class="control">
-          <input class="input" type="file" id="photo" accept="image/*">
+        <div class="field">
+          <label class="label">写真</label>
+          <div class="control">
+            <input class="input" type="file" id="photo" accept="image/*">
+          </div>
         </div>
-      </div>
 
-      <div class="field">
-        <label class="label">ひとこと（任意）</label>
-        <div class="control">
-          <textarea class="textarea" id="comment" placeholder="撮影した様子をメモしましょう"></textarea>
+        <div class="field is-full">
+          <label class="label">ひとこと（任意）</label>
+          <div class="control">
+            <textarea class="textarea" id="comment" placeholder="撮影した様子をメモしましょう"></textarea>
+          </div>
         </div>
       </div>
+      <p class="help">登録地点は <strong>地図の中心</strong> になります。</p>
     </section>
     <footer class="modal-card-foot">
       <button id="submitPhoto" class="button is-primary is-fullwidth">登録する</button>
@@ -107,11 +277,47 @@
   </div>
 </div>
 
+<div id="manualModal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">マニュアル</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body">
+      <div class="content">
+        <ol>
+          <li>地図を動かして、登録したい場所を <strong>中心</strong> に合わせます。</li>
+          <li>「＋」ボタンで写真登録画面を開きます。</li>
+          <li>タグと写真を選び、「登録する」を押します。</li>
+        </ol>
+        <p class="is-size-7 has-text-grey">現在地に戻るには「📍」ボタンを押してください。</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="galleryModal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">写真一覧</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body">
+      <div id="galleryGrid" class="gallery-grid"></div>
+      <p id="galleryEmpty" class="help is-hidden">写真がまだ登録されていません。</p>
+    </section>
+  </div>
+</div>
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzfEU5jaZYQw_ApnknegqjsfOTff2WPMag3BD2fJhHSMQrOAngaDOSaFiwb_GNoQiM_/exec";
 
 let lat, lng;
 let isSubmitting = false;
+let currentLocationMarker;
+let cachedPhotos = [];
 
 const modal = document.getElementById("registerModal");
 const openModalButton = document.getElementById("openModal");
@@ -123,6 +329,13 @@ const tagInput = document.getElementById("tag");
 const tagOptions = document.getElementById("tagOptions");
 const photoInput = document.getElementById("photo");
 const commentInput = document.getElementById("comment");
+const recenterButton = document.getElementById("recenterButton");
+const manualButton = document.getElementById("manualButton");
+const galleryButton = document.getElementById("galleryButton");
+const manualModal = document.getElementById("manualModal");
+const galleryModal = document.getElementById("galleryModal");
+const galleryGrid = document.getElementById("galleryGrid");
+const galleryEmpty = document.getElementById("galleryEmpty");
 
 const openModal = () => {
   modal.classList.add("is-active");
@@ -132,9 +345,33 @@ const closeModal = () => {
   modal.classList.remove("is-active");
 };
 
+const openManualModal = () => {
+  manualModal.classList.add("is-active");
+};
+
+const closeManualModal = () => {
+  manualModal.classList.remove("is-active");
+};
+
+const openGalleryModal = () => {
+  renderGallery(cachedPhotos);
+  galleryModal.classList.add("is-active");
+};
+
+const closeGalleryModal = () => {
+  galleryModal.classList.remove("is-active");
+};
+
 openModalButton.addEventListener("click", openModal);
 closeModalButton.addEventListener("click", closeModal);
 modalBackground.addEventListener("click", closeModal);
+manualButton.addEventListener("click", openManualModal);
+galleryButton.addEventListener("click", openGalleryModal);
+
+manualModal.querySelector(".delete").addEventListener("click", closeManualModal);
+manualModal.querySelector(".modal-background").addEventListener("click", closeManualModal);
+galleryModal.querySelector(".delete").addEventListener("click", closeGalleryModal);
+galleryModal.querySelector(".modal-background").addEventListener("click", closeGalleryModal);
 
 // 地図
 const map = L.map('map').setView([0, 0], 16);
@@ -142,13 +379,35 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
 
-// 現在地
-navigator.geolocation.getCurrentPosition(pos => {
-  lat = pos.coords.latitude;
-  lng = pos.coords.longitude;
+const setCurrentLocation = (position) => {
+  lat = position.coords.latitude;
+  lng = position.coords.longitude;
   map.setView([lat, lng], 17);
-  L.marker([lat, lng]).addTo(map).bindPopup("今いる場所").openPopup();
-});
+  if (currentLocationMarker) {
+    currentLocationMarker.setLatLng([lat, lng]);
+  } else {
+    currentLocationMarker = L.marker([lat, lng]).addTo(map).bindPopup("今いる場所");
+  }
+};
+
+const requestCurrentLocation = () => {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      setCurrentLocation(pos);
+      if (currentLocationMarker) {
+        currentLocationMarker.openPopup();
+      }
+    },
+    () => {
+      alert("現在地の取得に失敗しました。位置情報の許可を確認してください。");
+    }
+  );
+};
+
+// 現在地
+requestCurrentLocation();
+
+recenterButton.addEventListener("click", requestCurrentLocation);
 
 const buildDriveImageUrl = (fileId) => (
   fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : ""
@@ -191,6 +450,7 @@ const renderExistingPhotos = (photos) => {
     return;
   }
 
+  cachedPhotos = photos;
   photos.forEach(photo => {
     if (typeof photo.lat !== "number" || typeof photo.lng !== "number") {
       return;
@@ -208,6 +468,30 @@ const renderExistingPhotos = (photos) => {
     L.marker([photo.lat, photo.lng])
       .addTo(map)
       .bindPopup(popupHtml);
+  });
+};
+
+const renderGallery = (photos) => {
+  galleryGrid.innerHTML = "";
+  const validPhotos = Array.isArray(photos) ? photos.filter(photo => photo.imageUrl || photo.fileId) : [];
+  galleryEmpty.classList.toggle("is-hidden", validPhotos.length > 0);
+
+  validPhotos.forEach(photo => {
+    const imageUrl = getDriveImageUrl(photo);
+    const item = document.createElement("div");
+    item.className = "gallery-item";
+    item.innerHTML = `
+      ${imageUrl ? `<img src="${imageUrl}" alt="${photo.tag || "写真"}">` : ""}
+      ${photo.tag ? `<span class="tag is-info is-light">${photo.tag}</span>` : ""}
+      ${photo.comment ? `<p class="is-size-7">${photo.comment}</p>` : ""}
+    `;
+    item.addEventListener("click", () => {
+      if (typeof photo.lat === "number" && typeof photo.lng === "number") {
+        map.setView([photo.lat, photo.lng], 17);
+        closeGalleryModal();
+      }
+    });
+    galleryGrid.appendChild(item);
   });
 };
 
@@ -274,6 +558,9 @@ const setSubmittingState = (submitting) => {
   commentInput.disabled = submitting;
   openModalButton.disabled = submitting;
   closeModalButton.disabled = submitting;
+  recenterButton.disabled = submitting;
+  manualButton.disabled = submitting;
+  galleryButton.disabled = submitting;
 };
 
 // 送信
@@ -284,6 +571,7 @@ function send() {
 
   const file = document.getElementById("photo").files[0];
   const tag = document.getElementById("tag").value;
+  const center = map.getCenter();
 
   if (!file || !tag) {
     alert("写真とタグを選択してください");
@@ -293,8 +581,8 @@ function send() {
   const reader = new FileReader();
   reader.onload = async () => {
     const payload = new URLSearchParams({
-      lat,
-      lng,
+      lat: center.lat,
+      lng: center.lng,
       tag,
       comment: document.getElementById("comment").value,
       image: reader.result.split(",")[1]
