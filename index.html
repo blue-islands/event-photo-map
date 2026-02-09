@@ -46,94 +46,28 @@
     border-radius: 50%;
     background: #ff3860;
   }
-  .action-button {
+  .corner-button {
     position: fixed;
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    border: none;
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.25);
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
-    backdrop-filter: blur(10px);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     z-index: 1100;
-    transform: var(--base-transform, none);
   }
-  .action-button:hover {
-    transform: var(--base-transform, none) translateY(-2px) scale(1.02);
-    box-shadow: 0 24px 46px rgba(15, 23, 42, 0.3);
-  }
-  .action-button--top {
+  .corner-button--top-right {
     top: 24px;
     right: 24px;
-    --base-transform: none;
   }
-  .action-button--right {
+  .corner-button--bottom-right {
     right: 24px;
     bottom: 24px;
-    --base-transform: none;
   }
-  .action-button--bottom {
+  .corner-button--bottom-left {
     bottom: 24px;
     left: 24px;
-    --base-transform: none;
   }
-  .action-button--left {
+  .corner-button--top-left {
     left: 24px;
     top: 24px;
-    --base-transform: none;
-  }
-  .action-button[data-label]::after {
-    content: attr(data-label);
-    position: absolute;
-    background: rgba(15, 23, 42, 0.85);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  .action-button--top::after {
-    right: 0;
-    top: 72px;
-  }
-  .action-button--right::after {
-    right: 72px;
-    bottom: 20px;
-  }
-  .action-button--bottom::after {
-    left: 0;
-    bottom: 72px;
-  }
-  .action-button--left::after {
-    left: 72px;
-    top: 20px;
-  }
-  .action-button:hover::after {
-    opacity: 1;
-  }
-  .action-button.is-primary {
-    background: linear-gradient(135deg, #5b7cff, #7f5bff);
-    color: #fff;
-  }
-  .action-button.is-info {
-    background: linear-gradient(135deg, #2dd4bf, #38bdf8);
-    color: #fff;
-  }
-  .action-button.is-warning {
-    background: linear-gradient(135deg, #fbbf24, #fb7185);
-    color: #fff;
-  }
-  .action-button.is-link {
-    background: linear-gradient(135deg, #22d3ee, #6366f1);
-    color: #fff;
   }
   .photo-popup {
     width: 220px;
@@ -146,46 +80,8 @@
   .photo-popup .tag {
     margin-bottom: 6px;
   }
-  .modal-card {
-    width: min(92vw, 560px);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
-  }
-  .modal-card-head {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.85));
-    border-bottom: none;
-  }
-  .modal-card-body {
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.95));
-  }
   .modal {
     z-index: 2000;
-  }
-  .form-grid {
-    display: grid;
-    gap: 16px;
-  }
-  @media (min-width: 640px) {
-    .form-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .form-grid .field.is-full {
-      grid-column: 1 / -1;
-    }
-  }
-  .input, .textarea {
-    border-radius: 14px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
-  }
-  .textarea {
-    min-height: 120px;
-  }
-  .modal-card-foot {
-    background: transparent;
-    border-top: none;
   }
   .gallery-grid {
     display: grid;
@@ -214,16 +110,16 @@
 <div id="map"></div>
 <div class="map-center-indicator" aria-hidden="true"></div>
 
-<button id="manualButton" class="action-button action-button--top is-warning" aria-label="マニュアル" data-label="マニュアル">
+<button id="manualButton" class="button is-warning is-rounded corner-button corner-button--top-right" aria-label="マニュアル">
   ❔
 </button>
-<button id="galleryButton" class="action-button action-button--right is-info" aria-label="写真一覧" data-label="写真一覧">
+<button id="galleryButton" class="button is-info is-rounded corner-button corner-button--bottom-right" aria-label="写真一覧">
   🖼️
 </button>
-<button id="openModal" class="action-button action-button--bottom is-primary" aria-label="登録" data-label="写真を登録">
+<button id="openModal" class="button is-primary is-rounded corner-button corner-button--bottom-left" aria-label="登録">
   ＋
 </button>
-<button id="recenterButton" class="action-button action-button--left is-link" aria-label="現在地へ戻る" data-label="現在地へ戻る">
+<button id="recenterButton" class="button is-link is-rounded corner-button corner-button--top-left" aria-label="現在地へ戻る">
   📍
 </button>
 
@@ -250,11 +146,16 @@
           </div>
         </div>
 
-        <div class="field">
-          <label class="label">写真</label>
-          <div class="control">
-            <input class="input" type="file" id="photo" accept="image/*">
-          </div>
+      <div class="field">
+        <label class="label">写真</label>
+        <div class="file is-boxed is-fullwidth">
+          <label class="file-label">
+            <input class="file-input" type="file" id="photo" accept="image/*">
+            <span class="file-cta">
+              <span class="file-icon">📸</span>
+              <span class="file-label">写真を選ぶ</span>
+            </span>
+          </label>
         </div>
 
         <div class="field is-full">
@@ -382,7 +283,9 @@ const setCurrentLocation = (position) => {
   if (currentLocationMarker) {
     currentLocationMarker.setLatLng([lat, lng]);
   } else {
-    currentLocationMarker = L.marker([lat, lng]).addTo(map).bindPopup("今いる場所");
+    currentLocationMarker = L.marker([lat, lng])
+      .addTo(map)
+      .bindPopup("今いる場所", { autoPan: false });
   }
 };
 
@@ -390,16 +293,10 @@ const requestCurrentLocation = () => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       setCurrentLocation(pos);
-      if (currentLocationMarker) {
-        currentLocationMarker.openPopup();
-      }
     },
     () => {
       if (typeof lat === "number" && typeof lng === "number") {
         map.setView([lat, lng], 17);
-        if (currentLocationMarker) {
-          currentLocationMarker.openPopup();
-        }
         return;
       }
       alert("現在地の取得に失敗しました。位置情報の許可を確認してください。");
