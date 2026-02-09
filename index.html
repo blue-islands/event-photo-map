@@ -131,19 +131,20 @@
       <button class="delete" aria-label="close"></button>
     </header>
     <section class="modal-card-body">
-      <div class="field">
-        <label class="label">タグ</label>
-        <div class="control">
-          <input
-            class="input"
-            id="tag"
-            list="tagOptions"
-            placeholder="タグを選択または入力"
-            required
-          >
-          <datalist id="tagOptions"></datalist>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">タグ</label>
+          <div class="control">
+            <input
+              class="input"
+              id="tag"
+              list="tagOptions"
+              placeholder="タグを選択または入力"
+              required
+            >
+            <datalist id="tagOptions"></datalist>
+          </div>
         </div>
-      </div>
 
       <div class="field">
         <label class="label">写真</label>
@@ -156,12 +157,12 @@
             </span>
           </label>
         </div>
-      </div>
 
-      <div class="field">
-        <label class="label">ひとこと（任意）</label>
-        <div class="control">
-          <textarea class="textarea" id="comment" placeholder="撮影した様子をメモしましょう"></textarea>
+        <div class="field is-full">
+          <label class="label">ひとこと（任意）</label>
+          <div class="control">
+            <textarea class="textarea" id="comment" placeholder="撮影した様子をメモしましょう"></textarea>
+          </div>
         </div>
       </div>
       <p class="help">登録地点は <strong>地図の中心</strong> になります。</p>
