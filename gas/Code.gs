@@ -58,7 +58,7 @@ function doPost(e) {
 function doGet(e) {
   const mode = e && e.parameter ? e.parameter.mode : null;
   const callback = e && e.parameter ? e.parameter.callback : null;
-  if (mode && mode !== "list") {
+  if (mode && mode !== "list" && mode !== "tags") {
     return createJsonpResponse(
       { status: "error", message: "invalid mode" },
       callback
@@ -71,6 +71,15 @@ function doGet(e) {
 
   const values = sheet.getDataRange().getValues();
   const rows = values.length > 1 ? values.slice(1) : [];
+  if (mode === "tags") {
+    const tags = Array.from(new Set(
+      rows
+        .map(row => String(row[3] || "").trim())
+        .filter(tag => tag)
+    ));
+    return createJsonpResponse({ status: "ok", tags }, callback);
+  }
+
   const photos = rows.map(row => ({
     lat: Number(row[1]),
     lng: Number(row[2]),
