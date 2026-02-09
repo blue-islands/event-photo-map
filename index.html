@@ -69,23 +69,23 @@
   }
   .action-button--top {
     top: 24px;
-    left: 50%;
-    --base-transform: translateX(-50%);
+    right: 24px;
+    --base-transform: none;
   }
   .action-button--right {
     right: 24px;
-    top: 50%;
-    --base-transform: translateY(-50%);
+    bottom: 24px;
+    --base-transform: none;
   }
   .action-button--bottom {
     bottom: 24px;
-    left: 50%;
-    --base-transform: translateX(-50%);
+    left: 24px;
+    --base-transform: none;
   }
   .action-button--left {
     left: 24px;
-    top: 50%;
-    --base-transform: translateY(-50%);
+    top: 24px;
+    --base-transform: none;
   }
   .action-button[data-label]::after {
     content: attr(data-label);
@@ -101,24 +101,20 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
   .action-button--top::after {
+    right: 0;
     top: 72px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .action-button--bottom::after {
-    bottom: 72px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .action-button--left::after {
-    left: 72px;
-    top: 50%;
-    transform: translateY(-50%);
   }
   .action-button--right::after {
     right: 72px;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: 20px;
+  }
+  .action-button--bottom::after {
+    left: 0;
+    bottom: 72px;
+  }
+  .action-button--left::after {
+    left: 72px;
+    top: 20px;
   }
   .action-button:hover::after {
     opacity: 1;
@@ -399,6 +395,13 @@ const requestCurrentLocation = () => {
       }
     },
     () => {
+      if (typeof lat === "number" && typeof lng === "number") {
+        map.setView([lat, lng], 17);
+        if (currentLocationMarker) {
+          currentLocationMarker.openPopup();
+        }
+        return;
+      }
       alert("現在地の取得に失敗しました。位置情報の許可を確認してください。");
     }
   );
