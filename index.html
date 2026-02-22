@@ -175,17 +175,24 @@
     <section class="modal-card-body">
       <div class="form-grid">
         <div class="field">
-          <label class="label">タグ</label>
+          <label class="label" for="tagSelect">タグ</label>
+          <div class="control mb-2">
+            <div class="select is-fullwidth">
+              <select id="tagSelect" aria-label="候補タグから選択">
+                <option value="">候補から選択（任意）</option>
+              </select>
+            </div>
+          </div>
           <div class="control">
             <input
               class="input"
               id="tag"
-              list="tagOptions"
-              placeholder="タグを選択または入力"
+              placeholder="タグを入力（例: 受付、会場、ステージ）"
+              autocomplete="off"
               required
             >
-            <datalist id="tagOptions"></datalist>
           </div>
+          <p class="help">候補を選ぶか、自由に入力できます。</p>
         </div>
 
         <div class="field">
@@ -269,7 +276,7 @@ const modalBackground = modal.querySelector(".modal-background");
 const submitButton = document.getElementById("submitPhoto");
 const submitStatus = document.getElementById("submitStatus");
 const tagInput = document.getElementById("tag");
-const tagOptions = document.getElementById("tagOptions");
+const tagSelect = document.getElementById("tagSelect");
 const photoInput = document.getElementById("photo");
 const photoName = document.getElementById("photoName");
 const commentInput = document.getElementById("comment");
@@ -311,6 +318,20 @@ closeModalButton.addEventListener("click", closeModal);
 modalBackground.addEventListener("click", closeModal);
 manualButton.addEventListener("click", openManualModal);
 galleryButton.addEventListener("click", openGalleryModal);
+
+tagSelect.addEventListener("change", () => {
+  if (!tagSelect.value) {
+    return;
+  }
+  tagInput.value = tagSelect.value;
+  tagInput.focus();
+});
+
+tagInput.addEventListener("input", () => {
+  if (tagSelect.value && tagInput.value.trim() !== tagSelect.value) {
+    tagSelect.value = "";
+  }
+});
 
 photoInput.addEventListener("change", () => {
   const file = photoInput.files && photoInput.files[0];
@@ -468,7 +489,13 @@ const loadExistingPhotos = () => {
 loadExistingPhotos();
 
 const renderTagOptions = (tags) => {
-  tagOptions.innerHTML = "";
+  tagSelect.innerHTML = "";
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = "候補から選択（任意）";
+  tagSelect.appendChild(placeholderOption);
+
   if (!Array.isArray(tags)) {
     return;
   }
@@ -476,7 +503,8 @@ const renderTagOptions = (tags) => {
   tags.forEach(tag => {
     const option = document.createElement("option");
     option.value = tag;
-    tagOptions.appendChild(option);
+    option.textContent = tag;
+    tagSelect.appendChild(option);
   });
 };
 
@@ -506,6 +534,7 @@ const setSubmittingState = (submitting) => {
   submitButton.classList.toggle("is-loading", submitting);
   submitStatus.classList.toggle("is-hidden", !submitting);
   tagInput.disabled = submitting;
+  tagSelect.disabled = submitting;
   photoInput.disabled = submitting;
   commentInput.disabled = submitting;
   openModalButton.disabled = submitting;
@@ -522,7 +551,7 @@ function send() {
   }
 
   const file = document.getElementById("photo").files[0];
-  const tag = document.getElementById("tag").value;
+  const tag = document.getElementById("tag").value.trim();
   const center = map.getCenter();
 
   if (!file || !tag) {
