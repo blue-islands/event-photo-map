@@ -363,6 +363,15 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
 
+const currentLocationIcon = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
 const setCurrentLocation = (position) => {
   lat = position.coords.latitude;
   lng = position.coords.longitude;
@@ -370,7 +379,7 @@ const setCurrentLocation = (position) => {
   if (currentLocationMarker) {
     currentLocationMarker.setLatLng([lat, lng]);
   } else {
-    currentLocationMarker = L.marker([lat, lng])
+    currentLocationMarker = L.marker([lat, lng], { icon: currentLocationIcon })
       .addTo(map)
       .bindPopup("今いる場所", { autoPan: false });
   }
