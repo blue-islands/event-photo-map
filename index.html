@@ -155,6 +155,18 @@
     border: 1px solid #e5e7eb;
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
   }
+  .app-updated-at {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    z-index: 1200;
+    background: rgba(17, 24, 39, 0.72);
+    color: #fff;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    backdrop-filter: blur(3px);
+  }
 </style>
 </head>
 
@@ -162,6 +174,7 @@
 
 <div id="map"></div>
 <div class="map-center-indicator" aria-hidden="true"></div>
+<div id="appUpdatedAt" class="app-updated-at" aria-live="polite"></div>
 
 <button id="manualButton" class="button is-rounded corner-button corner-button--manual corner-button--top-right" aria-label="マニュアル">
   <i class="fa-solid fa-question"></i>
@@ -301,6 +314,16 @@ const manualModal = document.getElementById("manualModal");
 const galleryModal = document.getElementById("galleryModal");
 const galleryGrid = document.getElementById("galleryGrid");
 const galleryEmpty = document.getElementById("galleryEmpty");
+const appUpdatedAt = document.getElementById("appUpdatedAt");
+const APP_UPDATED_AT = "2026-03-06 10:52 UTC";
+const UPLOAD_TIMEOUT_MS = 45000;
+const MAX_IMAGE_PAYLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1600;
+const UPLOAD_RETRY_COUNT = 1;
+
+if (appUpdatedAt) {
+  appUpdatedAt.textContent = `更新日時: ${APP_UPDATED_AT}`;
+}
 
 const openModal = () => {
   modal.classList.add("is-active");
@@ -567,8 +590,76 @@ const setSubmittingState = (submitting) => {
   galleryButton.disabled = submitting;
 };
 
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(new Error("file read failed"));
+  reader.readAsDataURL(file);
+});
+
+const loadImage = (src) => new Promise((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => resolve(image);
+  image.onerror = () => reject(new Error("image decode failed"));
+  image.src = src;
+});
+
+const optimizeImageForUpload = async (file) => {
+  const originalDataUrl = await readFileAsDataUrl(file);
+
+  try {
+    const image = await loadImage(originalDataUrl);
+    const longestSide = Math.max(image.width, image.height) || 1;
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / longestSide);
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("canvas context unavailable");
+    }
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    const qualitySteps = [0.82, 0.72, 0.62, 0.52];
+    for (const quality of qualitySteps) {
+      const optimizedDataUrl = canvas.toDataURL("image/jpeg", quality);
+      const optimizedBase64 = optimizedDataUrl.split(",")[1] || "";
+      const optimizedBytes = Math.floor((optimizedBase64.length * 3) / 4);
+      if (optimizedBytes <= MAX_IMAGE_PAYLOAD_BYTES) {
+        return optimizedBase64;
+      }
+    }
+
+    return "";
+  } catch (error) {
+    const fallback = originalDataUrl.split(",")[1] || "";
+    const fallbackBytes = Math.floor((fallback.length * 3) / 4);
+    return fallbackBytes <= MAX_IMAGE_PAYLOAD_BYTES ? fallback : "";
+  }
+};
+
+const postWithTimeout = async (payload) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+
+  try {
+    await fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: payload,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 // 送信
-function send() {
+async function send() {
   if (isSubmitting) {
     return;
   }
@@ -582,44 +673,41 @@ function send() {
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = async () => {
+  setSubmittingState(true);
+
+  try {
+    const imageBase64 = await optimizeImageForUpload(file);
+    if (!imageBase64) {
+      setSubmittingState(false);
+      alert("画像サイズが大きすぎます。別の写真でお試しください。");
+      return;
+    }
+
     const payload = new URLSearchParams({
       lat: center.lat,
       lng: center.lng,
       tag,
       comment: document.getElementById("comment").value,
-      image: reader.result.split(",")[1]
+      image: imageBase64
     });
 
-    setSubmittingState(true);
-
-    const timeoutId = setTimeout(() => {
-      if (isSubmitting) {
+    for (let attempt = 0; attempt <= UPLOAD_RETRY_COUNT; attempt += 1) {
+      try {
+        await postWithTimeout(payload);
         setSubmittingState(false);
-        alert("送信に失敗しました。通信状態を確認してください。");
+        alert("送信しました！");
+        location.reload();
+        return;
+      } catch (error) {
+        if (attempt === UPLOAD_RETRY_COUNT) {
+          throw error;
+        }
       }
-    }, 15000);
-
-    try {
-      await fetch(GAS_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: payload
-      });
-
-      clearTimeout(timeoutId);
-      setSubmittingState(false);
-
-      alert("送信しました！");
-      location.reload();
-    } catch (error) {
-      clearTimeout(timeoutId);
-      setSubmittingState(false);
-      alert("送信に失敗しました。通信状態を確認してください。");
     }
-  };
-  reader.readAsDataURL(file);
+  } catch (error) {
+    setSubmittingState(false);
+    alert("送信に失敗しました。通信状態を確認してください。");
+  }
 }
 
 submitButton.addEventListener("click", send);
